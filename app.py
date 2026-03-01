@@ -9,13 +9,35 @@ sio.attach(app)
 
 
 @sio.event
-def connect(sid, environ):
-    print("connect ", sid)
+async def enter_room(sid, room_id):
+    await sio.enter_room(sid, room_id)
 
 
 @sio.event
-def disconnect(sid):
-    print("disconnect ", sid)
+async def proxy(sid, data):
+    event = data["event"]
+    data_ = data["data"]
+    to = data["to"]
+
+    if len(set(sio.rooms(sid)) & set(sio.rooms(to))) == 0:
+        return
+
+    try:
+        return await sio.call(event, data_, to=to, timeout=10)
+    except TimeoutError:
+        pass
+
+
+@sio.event
+async def broadcast(sid, data):
+    event = data["event"]
+    data_ = data["data"]
+    await sio.emit(event, data_, room=sio.rooms(sid), skip_sid=sid)
+
+
+@sio.event
+async def disconnect(sid):
+    await sio.emit("suspendUser", sid, room=sio.rooms(sid))
 
 
 if __name__ == "__main__":
