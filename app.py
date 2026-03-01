@@ -24,7 +24,7 @@ async def proxy(sid, data):
 
     try:
         return await sio.call(event, data_, to=to, timeout=10)
-    except TimeoutError:
+    except socketio.exceptions.TimeoutError:
         pass
 
 
