@@ -39,68 +39,56 @@ export const system = reactive({
 })
 
 const url = process.env.NODE_ENV === "production" ? undefined : "http://localhost:8080"
-export const socket = io(url)
+const socket = io(url)
 
-socket.on("connect", () => {
+socket.on("connect", async () => {
   if (system.stat == 0) {
     // 初回接続時
     const roomIdParam = getParam("r")
     const sidParam = getParam("s")
     if (roomIdParam != null && sidParam != null) {
       // 招待URLの場合
-      socket.emit("enter_room", roomIdParam, () => {
-        socket.emit("proxy", { event: "getRoomData", data: null, to: sidParam }, (roomData) => {
-          if (roomData != null) {
-            // 入室可能の場合
-            system.stat = 2
-            system.roomId = roomIdParam
-            system.roomData = roomData
-          } else {
-            // 入室不可能の場合
-            system.stat = 5
-            socket.disconnect()
-          }
-        })
-      })
+      await asyncEmit("enter_room", roomIdParam)
+      const roomData = await asyncEmit("proxy", { event: "getRoomData", data: null, to: sidParam })
+      if (roomData != null) {
+        // 入室可能の場合
+        system.stat = 2
+        system.roomId = roomIdParam
+        system.roomData = roomData
+      } else {
+        // 入室不可能の場合
+        system.stat = 5
+        socket.disconnect()
+      }
     } else {
       // 招待URLでない場合
       system.stat = 1
     }
   } else if (system.stat == 4) {
     // 再接続時
-    socket.emit("enter_room", system.roomId, () => {
-      const sidList = []
-      for (const userId in system.roomData.users) {
-        const userData = system.roomData.users[userId]
-        sidList.push(userData.sid)
-      }
-      function tryGetRoomData(sidList) {
-        socket.emit("proxy", { event: "getRoomData", data: null, to: sidList[0] }, (roomData) => {
-          if (roomData != null) {
-            // 再接続可能
-            system.stat = 3
-            system.roomData = roomData
-            system.roomData.users[system.myId].sid = socket.id
-            system.roomData.users[system.myId].stat = 0
-            socket.emit("broadcast", {
-              event: "updateUser",
-              data: {
-                userId: system.myId,
-                userData: system.roomData.users[system.myId],
-              },
-            })
-            setParam("s", socket.id)
-          } else if (sidList.length == 1) {
-            //再接続不可能
-            system.stat = 5
-            socket.disconnect()
-          } else {
-            tryGetRoomData(sidList.slice(1))
-          }
+    await asyncEmit("enter_room", system.roomId)
+    for (const userData of system.roomData.users) {
+      const roomData = await asyncEmit("proxy", { event: "getRoomData", data: null, to: userData.sid })
+      if (roomData != null) {
+        // 再接続可能
+        system.stat = 3
+        system.roomData = roomData
+        system.roomData.users[system.myId].sid = socket.id
+        system.roomData.users[system.myId].stat = 0
+        setParam("s", socket.id)
+        await asyncEmit("broadcast", {
+          event: "updateUser",
+          data: {
+            userId: system.myId,
+            userData: system.roomData.users[system.myId],
+          },
         })
+        return
       }
-      tryGetRoomData(sidList)
-    })
+    }
+    // 再接続不可能
+    system.stat = 5
+    socket.disconnect()
   }
 })
 
@@ -129,8 +117,7 @@ socket.on("addUser", (userData) => {
 
 socket.on("suspendUser", (sid) => {
   if (system.stat == 2 || system.stat == 3) {
-    for (const userId in system.roomData.users) {
-      const userData = system.roomData.users[userId]
+    for (const userData of system.roomData.users) {
       if (userData.sid == sid) {
         userData.stat = 1
       }
@@ -141,11 +128,18 @@ socket.on("suspendUser", (sid) => {
 socket.on("updateUser", (data) => {
   const userId = data.userId
   const userData = data.userData
-
   if (system.stat == 2 || system.stat == 3) {
     system.roomData.users[userId] = userData
   }
 })
+
+function asyncEmit(eventName, data) {
+  return new Promise((resolve) => {
+    socket.emit(eventName, data, (response) => {
+      resolve(response)
+    })
+  })
+}
 
 function getParam(key) {
   return new URLSearchParams(document.location.search).get(key)
