@@ -30,6 +30,11 @@ export const system = reactive({
     })
     setParam("s", socket.id)
   },
+  reload() {
+    setParam("r", null)
+    setParam("s", null)
+    window.location.reload()
+  },
   disconnectForDebug() {
     socket.disconnect()
   },
