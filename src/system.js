@@ -8,7 +8,7 @@ export const system = reactive({
   roomData: {
     roomName: "",
     users: [
-      // { userName: ユーザー名, sid: セッションID, stat: 0：通常、1：一時切断、2：切断 },
+      // { userName: ユーザー名, sid: セッションID, left: 退出済みかどうか },
     ],
   },
   makeRoom(myName, roomName) {
@@ -17,17 +17,14 @@ export const system = reactive({
     socket.emit("enter_room", this.roomId)
     setParam("r", this.roomId)
     this.roomData.roomName = roomName
-    this.roomData.users.push({ userName: myName, sid: socket.id, stat: 0 })
+    this.roomData.users.push({ userName: myName, sid: socket.id, left: false })
     setParam("s", socket.id)
   },
   enterRoom(myName) {
     this.stat = 3
     this.myId = this.roomData.users.length
-    this.roomData.users.push({ userName: myName, sid: socket.id, stat: 0 })
-    socket.emit("broadcast", {
-      event: "addUser",
-      data: { userName: myName, sid: socket.id, stat: 0 },
-    })
+    this.roomData.users.push({ userName: myName, sid: socket.id, left: false })
+    socket.emit("broadcast", { event: "addUser", data: this.roomData.users[this.myId] })
     setParam("s", socket.id)
   },
   reload() {
@@ -72,22 +69,31 @@ socket.on("connect", async () => {
   } else if (system.stat == 4) {
     // 再接続時
     await asyncEmit("enter_room", system.roomId)
-    for (const userData of system.roomData.users) {
+    for (const userId in system.roomData.users) {
+      const userData = system.roomData.users[userId]
+      if (userData.left || userData.Id == system.myId) {
+        continue
+      }
       const roomData = await asyncEmit("proxy", { event: "getRoomData", data: null, to: userData.sid })
       if (roomData != null) {
+        if (roomData.users[system.myId].left) {
+          // 再接続不可能
+          system.stat = 5
+          socket.disconnect()
+          return
+        }
         // 再接続可能
         system.stat = 3
         system.roomData = roomData
         system.roomData.users[system.myId].sid = socket.id
-        system.roomData.users[system.myId].stat = 0
-        setParam("s", socket.id)
-        await asyncEmit("broadcast", {
+        socket.emit("broadcast", {
           event: "updateUser",
           data: {
             userId: system.myId,
             userData: system.roomData.users[system.myId],
           },
         })
+        setParam("s", socket.id)
         return
       }
     }
@@ -120,12 +126,16 @@ socket.on("addUser", (userData) => {
   }
 })
 
-socket.on("suspendUser", (sid) => {
+socket.on("leaveUser", (sid) => {
   if (system.stat == 2 || system.stat == 3) {
     for (const userData of system.roomData.users) {
       if (userData.sid == sid) {
-        userData.stat = 1
+        userData.left = true
       }
+    }
+    if (system.roomData.users[system.myId].left) {
+      system.stat = 5
+      socket.disconnect()
     }
   }
 })
@@ -135,6 +145,10 @@ socket.on("updateUser", (data) => {
   const userData = data.userData
   if (system.stat == 2 || system.stat == 3) {
     system.roomData.users[userId] = userData
+  }
+  if (system.roomData.users[system.myId].left) {
+    system.stat = 5
+    socket.disconnect()
   }
 })
 
