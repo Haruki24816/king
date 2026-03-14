@@ -1,5 +1,5 @@
 <template>
-  <v-dialog max-width="500">
+  <v-dialog max-width="400">
     <template v-slot:activator="{ props: activatorProps }">
       <v-btn v-bind="activatorProps" block>このゲームについて</v-btn>
     </template>

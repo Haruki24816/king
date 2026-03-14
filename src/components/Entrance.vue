@@ -1,6 +1,6 @@
 <template>
   <Logo>
-    <v-dialog max-width="500">
+    <v-dialog max-width="400">
       <template v-slot:activator="{ props: activatorProps }">
         <v-btn class="mb-4" v-bind="activatorProps" block>始める</v-btn>
       </template>

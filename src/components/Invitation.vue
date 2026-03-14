@@ -1,7 +1,7 @@
 <template>
   <Logo>
     <div class="text-center mb-8">「{{ system.stores.room.data.roomName }}」に招待されています</div>
-    <v-dialog max-width="500">
+    <v-dialog max-width="400">
       <template v-slot:activator="{ props: activatorProps }">
         <v-btn class="mb-4" v-bind="activatorProps" block>参加</v-btn>
       </template>
