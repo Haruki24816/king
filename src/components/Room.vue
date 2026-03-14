@@ -23,7 +23,7 @@
           </tr>
           <tr>
             <td>ルーム名</td>
-            <td>{{ system.roomData.roomName }}</td>
+            <td>{{ system.stores.room.data.roomName }}</td>
           </tr>
         </tbody>
       </v-table>
@@ -39,7 +39,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(userData, userId) in system.roomData.users">
+          <tr v-for="(userData, userId) in system.stores.room.data.users">
             <th>{{ userId }}</th>
             <th>{{ userData.userName }}</th>
             <th>{{ userData.sid }}</th>

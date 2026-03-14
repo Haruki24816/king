@@ -1,30 +1,28 @@
 import { reactive } from "vue"
 import { io } from "socket.io-client"
+import { room } from "./room"
 
 export const system = reactive({
   stat: 0, // 0：初期状態、1：接続時、2：接続時（招待あり）、3：入室時、4：一時切断、5：切断
-  myId: 0,
+  myId: null,
   roomId: "",
-  roomData: {
-    roomName: "",
-    users: [
-      // { userName: ユーザー名, sid: セッションID, left: 退出済みかどうか },
-    ],
+  stores: {
+    room: room,
   },
   makeRoom(myName, roomName) {
     this.stat = 3
+    this.myId = 0
     this.roomId = generate_id()
     socket.emit("enter_room", this.roomId)
     setParam("r", this.roomId)
-    this.roomData.roomName = roomName
-    this.roomData.users.push({ userName: myName, sid: socket.id, left: false })
+    this.stores.room.setRoomName(roomName)
+    this.stores.room.addUser(myName, socket.id)
     setParam("s", socket.id)
   },
   enterRoom(myName) {
     this.stat = 3
-    this.myId = this.roomData.users.length
-    this.roomData.users.push({ userName: myName, sid: socket.id, left: false })
-    socket.emit("broadcast", { event: "addUser", data: this.roomData.users[this.myId] })
+    this.myId = this.stores.room.data.users.length
+    this.operateStore("room", "addUser", myName, socket.id)
     setParam("s", socket.id)
   },
   reload() {
@@ -37,6 +35,38 @@ export const system = reactive({
   },
   connectForDebug() {
     socket.connect()
+  },
+  operateStore(storeName, methodName, ...args) {
+    this.operateOwnStore(storeName, methodName, ...args)
+    socket.emit("broadcast", {
+      event: "operateStore",
+      data: { storeName: storeName, methodName: methodName, args: args },
+    })
+  },
+  operateOwnStore(storeName, methodName, ...args) {
+    if (!Object.hasOwn(this.stores, storeName)) {
+      return
+    }
+    const store = this.stores[storeName]
+    if (!store.methods.includes(methodName)) {
+      return
+    }
+    store[methodName](...args)
+  },
+  syncStoreData(storeData) {
+    for (const storeName in storeData) {
+      const newStoreData = storeData[storeName]
+      const store = this.stores[storeName]
+      store.data = newStoreData
+    }
+  },
+  exportStoreData() {
+    const storeData = {}
+    for (const storeName in this.stores) {
+      const store = this.stores[storeName]
+      storeData[storeName] = store.data
+    }
+    return storeData
   },
 })
 
@@ -51,12 +81,10 @@ socket.on("connect", async () => {
     if (roomIdParam != null && sidParam != null) {
       // 招待URLの場合
       await asyncEmit("enter_room", roomIdParam)
-      const roomData = await asyncEmit("proxy", { event: "getRoomData", data: null, to: sidParam })
-      if (roomData != null) {
+      if (await trySyncStores([sidParam])) {
         // 入室可能の場合
         system.stat = 2
         system.roomId = roomIdParam
-        system.roomData = roomData
       } else {
         // 入室不可能の場合
         system.stat = 5
@@ -69,37 +97,22 @@ socket.on("connect", async () => {
   } else if (system.stat == 4) {
     // 再接続時
     await asyncEmit("enter_room", system.roomId)
-    for (const userId in system.roomData.users) {
-      const userData = system.roomData.users[userId]
-      if (userData.left || userData.Id == system.myId) {
-        continue
-      }
-      const roomData = await asyncEmit("proxy", { event: "getRoomData", data: null, to: userData.sid })
-      if (roomData != null) {
-        if (roomData.users[system.myId].left) {
-          // 再接続不可能
-          system.stat = 5
-          socket.disconnect()
-          return
-        }
-        // 再接続可能
-        system.stat = 3
-        system.roomData = roomData
-        system.roomData.users[system.myId].sid = socket.id
-        socket.emit("broadcast", {
-          event: "updateUser",
-          data: {
-            userId: system.myId,
-            userData: system.roomData.users[system.myId],
-          },
-        })
-        setParam("s", socket.id)
+    if (await trySyncStores(system.stores.room.getSidList(system.myId))) {
+      if (system.stores.room.data.users[system.myId].left) {
+        // 再接続不可能
+        system.stat = 5
+        socket.disconnect()
         return
       }
+      // 再接続可能
+      system.stat = 3
+      system.operateStore("room", "updateUserSid", system.myId, socket.id)
+      setParam("s", socket.id)
+    } else {
+      // 再接続不可能
+      system.stat = 5
+      socket.disconnect()
     }
-    // 再接続不可能
-    system.stat = 5
-    socket.disconnect()
   }
 })
 
@@ -112,45 +125,45 @@ socket.on("disconnect", () => {
   }
 })
 
-socket.on("getRoomData", (callback) => {
+socket.on("getStoreData", (callback) => {
   if (system.stat == 3) {
-    callback(system.roomData)
+    callback(system.exportStoreData())
   } else {
     callback(null)
   }
 })
 
-socket.on("addUser", (userData) => {
-  if (system.stat == 2 || system.stat == 3) {
-    system.roomData.users.push(userData)
-  }
-})
-
 socket.on("leaveUser", (sid) => {
   if (system.stat == 2 || system.stat == 3) {
-    for (const userData of system.roomData.users) {
-      if (userData.sid == sid) {
-        userData.left = true
-      }
-    }
-    if (system.roomData.users[system.myId].left) {
+    system.stores.room.leaveUserSid(sid)
+    if (system.stores.room.data.users[system.myId].left) {
       system.stat = 5
       socket.disconnect()
     }
   }
 })
 
-socket.on("updateUser", (data) => {
-  const userId = data.userId
-  const userData = data.userData
-  if (system.stat == 2 || system.stat == 3) {
-    system.roomData.users[userId] = userData
-  }
-  if (system.roomData.users[system.myId].left) {
-    system.stat = 5
-    socket.disconnect()
-  }
+socket.on("operateStore", (data) => {
+  const storeName = data.storeName
+  const methodName = data.methodName
+  const args = data.args
+  system.operateOwnStore(storeName, methodName, ...args)
 })
+
+async function trySyncStores(sidList) {
+  for (const sid of sidList) {
+    const storeData = await asyncEmit("proxy", {
+      event: "getStoreData",
+      data: null,
+      to: sid,
+    })
+    if (storeData != null) {
+      system.syncStoreData(storeData)
+      return true
+    }
+  }
+  return false
+}
 
 function asyncEmit(eventName, data) {
   return new Promise((resolve) => {

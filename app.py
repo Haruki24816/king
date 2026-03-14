@@ -37,7 +37,6 @@ async def broadcast(sid, data):
 
 @sio.event
 async def disconnect(sid, reason):
-    print(reason)
     if reason in (sio.reason.TRANSPORT_CLOSE, sio.reason.CLIENT_DISCONNECT):
         await sio.emit("leaveUser", sid, room=sio.rooms(sid))
 
