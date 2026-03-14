@@ -30,12 +30,6 @@ export const system = reactive({
     setParam("s", null)
     window.location.reload()
   },
-  disconnectForDebug() {
-    socket.disconnect()
-  },
-  connectForDebug() {
-    socket.connect()
-  },
   operateStore(storeName, methodName, ...args) {
     this.operateOwnStore(storeName, methodName, ...args)
     socket.emit("broadcast", {
@@ -133,16 +127,6 @@ socket.on("getStoreData", (callback) => {
   }
 })
 
-socket.on("leaveUser", (sid) => {
-  if (system.stat == 2 || system.stat == 3) {
-    system.stores.room.leaveUserSid(sid)
-    if (system.stores.room.data.users[system.myId].left) {
-      system.stat = 5
-      socket.disconnect()
-    }
-  }
-})
-
 socket.on("operateStore", (data) => {
   const storeName = data.storeName
   const methodName = data.methodName
@@ -164,6 +148,11 @@ async function trySyncStores(sidList) {
   }
   return false
 }
+
+window.addEventListener("beforeunload", () => {
+  system.stat = 5
+  system.operateStore("room", "leaveUser", system.myId)
+})
 
 function asyncEmit(eventName, data) {
   return new Promise((resolve) => {

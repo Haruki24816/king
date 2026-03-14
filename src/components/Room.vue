@@ -48,10 +48,6 @@
         </tbody>
       </v-table>
     </v-sheet>
-    <v-sheet elevation=1 class="mb-4 pa-4">
-      <v-btn @click="system.disconnectForDebug()" class="me-4">切断（デバック用）</v-btn>
-      <v-btn @click="system.connectForDebug()">接続（デバック用）</v-btn>
-    </v-sheet>
   </v-container>
 </template>
 

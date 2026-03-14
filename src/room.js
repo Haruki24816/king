@@ -9,6 +9,7 @@ export const room = {
     "setRoomName",
     "addUser",
     "updateUserSid",
+    "leaveUser",
   ],
   setRoomName(roomName) {
     this.data.roomName = roomName
@@ -23,6 +24,10 @@ export const room = {
   updateUserSid(userId, sid) {
     this.data.users[userId].sid = sid
   },
+  leaveUser(userId) {
+    const userData = this.data.users[userId]
+    userData.left = true
+  },
   getSidList(skip = null) {
     const sidList = []
     for (const userId in this.data.users) {
@@ -36,12 +41,5 @@ export const room = {
       sidList.push(userData.sid)
     }
     return sidList
-  },
-  leaveUserSid(sid) {
-    for (const userData of this.data.users) {
-      if (userData.sid == sid) {
-        userData.left = true
-      }
-    }
   },
 }
