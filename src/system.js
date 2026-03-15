@@ -1,6 +1,7 @@
 import { reactive } from "vue"
 import { io } from "socket.io-client"
 import { room } from "./room"
+import { king } from "./king"
 
 export const system = reactive({
   stat: 0, // 0：初期状態、1：接続時、2：接続時（招待あり）、3：入室時、4：一時切断、5：切断
@@ -8,6 +9,7 @@ export const system = reactive({
   roomId: "",
   stores: {
     room: room,
+    king: king,
   },
   makeRoom(myName, roomName) {
     this.stat = 3
