@@ -8,7 +8,8 @@
         <v-btn @click="system.operateStore('room', 'upUserOrder', userId)">↑</v-btn>
         <v-btn @click="system.operateStore('room', 'downUserOrder', userId)">↓</v-btn>
       </div>
-      <v-btn>ゲーム開始</v-btn>
+      <v-btn
+        @click="system.operateStore('room', 'updateUserOrder', system.stores.room.getShuffledUserIds())">順番シャッフル</v-btn>
     </template>
   </div>
 </template>

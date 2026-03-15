@@ -12,6 +12,7 @@ export const room = {
     "leaveUser",
     "upUserOrder",
     "downUserOrder",
+    "updateUserOrder",
   ],
   setRoomName(roomName) {
     this.data.roomName = roomName
@@ -58,6 +59,13 @@ export const room = {
     userData.order += 1
     swapUserData.order -= 1
   },
+  updateUserOrder(userIds) {
+    for (const order in userIds) {
+      const userId = userIds[order]
+      const userData = this.getUsers()[userId]
+      userData.order = Number(order)
+    }
+  },
   getSidList(skip = null) {
     const sidList = []
     for (const userId in this.getUsers()) {
@@ -95,4 +103,19 @@ export const room = {
     }
     return userIds
   },
+  getShuffledUserIds() {
+    const userIds = this.getUserIds()
+    return shuffleArray(userIds)
+  },
+}
+
+function shuffleArray(array) {
+  const newArray = [...array]
+  for (let index = newArray.length - 1; 0 <= index; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    const temp = newArray[index]
+    newArray[index] = newArray[swapIndex]
+    newArray[swapIndex] = temp
+  }
+  return newArray
 }
