@@ -49,7 +49,7 @@ export const king = {
   filterCards(back, face, location) {
     const cardIds = []
     for (const cardId in this.data.cards) {
-      cardIds.push(cardId)
+      cardIds.push(Number(cardId))
     }
     return cardIds.filter((cardId) => {
       if (back != null && this.data.cards[cardId].back != back) {
