@@ -1,7 +1,9 @@
 <template>
-  <div>カードを引いてください 残り{{ count }}枚</div>
+  <div>カードを引いてください 残り{{ 15 - king.filterCards(null, null, room.getPlayerId(system.myId)).length }}枚</div>
   <div>
-    <v-btn v-for="cardId in deckCards" :color="getColor(cardId)" @click="collect(cardId)">{{ cardId }}</v-btn>
+    <v-btn v-for="cardId in deckCards" :color="getColor(cardId)" @click="collect(cardId)">
+      {{ cardId }}
+    </v-btn>
   </div>
   <div>持ってるカード</div>
   <div>
@@ -37,16 +39,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue"
+import { computed } from "vue"
 import { system } from "../system"
 
 const king = system.stores.king
 const room = system.stores.room
 
-const count = ref(15)
-
 function collect(cardId) {
-  if (0 < count.value) {
+  if (king.filterCards(null, null, room.getPlayerId(system.myId)).length < 15) {
     system.operateStore(
       "king",
       "collectCard",
@@ -54,7 +54,6 @@ function collect(cardId) {
       cardId,
     )
   }
-  count.value -= 1
 }
 
 function getColor(cardId) {

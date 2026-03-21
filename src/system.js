@@ -32,12 +32,12 @@ export const system = reactive({
     setParam("s", null)
     window.location.reload()
   },
-  operateStore(storeName, methodName, ...args) {
-    this.operateOwnStore(storeName, methodName, ...args)
-    socket.emit("broadcast", {
+  async operateStore(storeName, methodName, ...args) {
+    await asyncEmit("broadcast", {
       event: "operateStore",
       data: { storeName: storeName, methodName: methodName, args: args },
     })
+    this.operateOwnStore(storeName, methodName, ...args)
   },
   operateOwnStore(storeName, methodName, ...args) {
     if (!Object.hasOwn(this.stores, storeName)) {
