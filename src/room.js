@@ -13,6 +13,7 @@ export const room = {
     "upUserOrder",
     "downUserOrder",
     "updateUserOrder",
+    "setPlayerIdByOrder",
   ],
   setRoomName(roomName) {
     this.data.roomName = roomName
@@ -23,6 +24,7 @@ export const room = {
       sid: sid,
       left: false,
       order: this.getUserCount(),
+      playerId: null,
     })
   },
   updateUserSid(userId, sid) {
@@ -66,6 +68,12 @@ export const room = {
       userData.order = Number(order)
     }
   },
+  setPlayerIdByOrder() {
+    for (const userId of this.getUserIds()) {
+      const userData = this.data.users[userId]
+      userData.playerId = userData.order
+    }
+  },
   getSidList(skip = null) {
     const sidList = []
     for (const userId in this.getUsers()) {
@@ -87,6 +95,16 @@ export const room = {
     }
     return users
   },
+  getUserIds() {
+    const userIds = []
+    for (const userId in this.data.users) {
+      const userData = this.data.users[userId]
+      if (!userData.left) {
+        userIds.push(userId)
+      }
+    }
+    return userIds
+  },
   getUserCount() {
     return Object.keys(this.getUsers()).length
   },
@@ -106,6 +124,9 @@ export const room = {
   getShuffledUserIds() {
     const userIds = this.getUserIds()
     return shuffleArray(userIds)
+  },
+  getPlayerId(userId) {
+    return this.data.users[userId].playerId
   },
 }
 

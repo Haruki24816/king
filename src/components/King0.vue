@@ -22,6 +22,10 @@ const room = system.stores.room
 
 function start() {
   system.operateStore(
+    "room",
+    "setPlayerIdByOrder",
+  )
+  system.operateStore(
     "king",
     "start",
     room.getUserCount(),
