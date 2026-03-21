@@ -20,7 +20,7 @@ export const king = {
   },
   methods: [
     "start",
-    "drawCard",
+    "collectCard",
   ],
   start(playerNum, firstShuffle, secondShuffle) {
     this.data.stat = 1
@@ -36,7 +36,7 @@ export const king = {
     this.data.firstShuffle = firstShuffle
     this.data.secondShuffle = secondShuffle
   },
-  drawCard(playerId, cardId) {
+  collectCard(playerId, cardId) {
     this.data.cards[cardId].location = playerId
     const allCardNum = this.data.cards.length
     const deckCardNum = this.filterCards(null, null, -1).length

@@ -1,7 +1,7 @@
 <template>
   <div>カードを15枚引いてください</div>
   <div>
-    <v-btn v-for="cardId in deckCards" :color="getColor(cardId)" @click="draw(cardId)">{{ cardId }}</v-btn>
+    <v-btn v-for="cardId in deckCards" :color="getColor(cardId)" @click="collect(cardId)">{{ cardId }}</v-btn>
   </div>
   <div>持ってるカード</div>
   <div>
@@ -43,10 +43,10 @@ import { system } from "../system"
 const king = system.stores.king
 const room = system.stores.room
 
-function draw(cardId) {
+function collect(cardId) {
   system.operateStore(
     "king",
-    "drawCard",
+    "collectCard",
     room.data.users[system.myId].order,
     cardId,
   )
