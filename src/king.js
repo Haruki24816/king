@@ -21,6 +21,7 @@ export const king = {
   methods: [
     "start",
     "collectCard",
+    "drawCard",
   ],
   start(playerNum, firstShuffle, secondShuffle) {
     this.data.stat = 1
@@ -45,6 +46,11 @@ export const king = {
     if ((allCardNum - deckCardNum - hideCardNum) == (playerNum * 15)) {
       this.data.stat = 2
     }
+  },
+  drawCard(cardId) {
+    this.data.stat = 3
+    this.data.cards[cardId].location = this.data.turn
+    this.data.players[this.data.turn].hand.push(cardId)
   },
   filterCards(back, face, location) {
     const cardIds = []
