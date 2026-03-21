@@ -1,8 +1,8 @@
 <template>
   <div>プレイヤー一覧（リンクを共有して招待してください）</div>
   <div v-for="userId in room.getUserIds()">
-    {{ room.getUsers()[userId].userName }}
-    {{ room.getUsers()[userId].order }}
+    {{ room.data.users[userId].userName }}
+    {{ room.data.users[userId].order }}
     <v-btn @click="system.operateStore('room', 'upUserOrder', userId)">↑</v-btn>
     <v-btn @click="system.operateStore('room', 'downUserOrder', userId)">↓</v-btn>
   </div>

@@ -40,7 +40,7 @@ export const room = {
     }
   },
   upUserOrder(userId) {
-    const users = this.getUsers()
+    const users = this.data.users
     const userData = users[userId]
     const swapUserId = this.getUserIds()[userData.order - 1]
     if (swapUserId === undefined) {
@@ -51,7 +51,7 @@ export const room = {
     swapUserData.order += 1
   },
   downUserOrder(userId) {
-    const users = this.getUsers()
+    const users = this.data.users
     const userData = users[userId]
     const swapUserId = this.getUserIds()[userData.order + 1]
     if (swapUserId === undefined) {
@@ -64,7 +64,7 @@ export const room = {
   updateUserOrder(userIds) {
     for (const order in userIds) {
       const userId = userIds[order]
-      const userData = this.getUsers()[userId]
+      const userData = this.data.users[userId]
       userData.order = Number(order)
     }
   },
@@ -76,7 +76,7 @@ export const room = {
   },
   getSidList(skip = null) {
     const sidList = []
-    for (const userId in this.getUsers()) {
+    for (const userId of this.getUserIds()) {
       const userData = this.data.users[userId]
       if (userId == skip) {
         continue
@@ -84,16 +84,6 @@ export const room = {
       sidList.push(userData.sid)
     }
     return sidList
-  },
-  getUsers() {
-    const users = {}
-    for (const userId in this.data.users) {
-      const userData = this.data.users[userId]
-      if (!userData.left) {
-        users[userId] = userData
-      }
-    }
-    return users
   },
   getUserIds() {
     const userIds = []
@@ -103,23 +93,15 @@ export const room = {
         userIds.push(userId)
       }
     }
+    userIds.sort((userIdA, userIdB) => {
+      const userDataA = this.data.users[userIdA]
+      const userDataB = this.data.users[userIdB]
+      return userDataA.order - userDataB.order
+    })
     return userIds
   },
   getUserCount() {
-    return Object.keys(this.getUsers()).length
-  },
-  getUserIds() {
-    const users = this.getUsers()
-    const userIdDict = {}
-    for (const userId in users) {
-      const userData = users[userId]
-      userIdDict[userData.order] = userId
-    }
-    const userIds = []
-    for (let order = 0; order < this.getUserCount(); order += 1) {
-      userIds.push(userIdDict[order])
-    }
-    return userIds
+    return this.getUserIds().length
   },
   getShuffledUserIds() {
     const userIds = this.getUserIds()
