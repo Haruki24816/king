@@ -3,6 +3,7 @@
     <King0 v-if="system.stores.king.data.stat == 0" />
     <King1 v-if="system.stores.king.data.stat == 1" />
     <King2 v-if="system.stores.king.data.stat == 2" />
+    <King3 v-if="system.stores.king.data.stat == 3" />
   </div>
 </template>
 

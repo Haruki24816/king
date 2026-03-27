@@ -22,6 +22,7 @@ export const king = {
     "start",
     "collectCard",
     "drawCard",
+    "pay",
   ],
   start(playerNum, firstShuffle, secondShuffle) {
     this.data.stat = 1
@@ -51,6 +52,41 @@ export const king = {
     this.data.stat = 3
     this.data.cards[cardId].location = this.data.turn
     this.data.players[this.data.turn].hand.push(cardId)
+  },
+  pay(playerId, cardId) {
+    this.data.cards[cardId].location = this.data.turn
+    this.data.players[playerId].hand.push(cardId)
+    const turnPlayerData = this.data.players[this.data.turn]
+    let count = 0
+    for (const playerData of this.data.players) {
+      if (this.countAmount(playerData.hand) == this.countAmount(turnPlayerData.hand)) {
+        count += 1
+      }
+    }
+    if (count == this.data.players.length) {
+      this.data.stat = 2
+      this.data.turn += 1
+      if (this.data.turn == this.data.players.length) {
+        this.data.turn = 0
+      }
+      for (const playerData of this.data.players) {
+        playerData.hand = []
+      }
+    }
+  },
+  countAmount(cardIds) {
+    const counts = {
+      0: 0,
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+    }
+    for (const cardId of cardIds) {
+      const cardData = this.data.cards[cardId]
+      counts[cardData.face] += 1
+    }
+    return 1000 * counts[0] + 100 * counts[1] + 500 * counts[2] + 500 * counts[3] + 2000 * counts[4]
   },
   filterCards(back, face, location) {
     const cardIds = []

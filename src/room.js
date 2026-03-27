@@ -110,6 +110,13 @@ export const room = {
   getPlayerId(userId) {
     return this.data.users[userId].playerId
   },
+  getUserDataByPlayerId(playerId) {
+    for (const userData of this.data.users) {
+      if (userData.playerId == playerId) {
+        return userData
+      }
+    }
+  },
 }
 
 function shuffleArray(array) {
