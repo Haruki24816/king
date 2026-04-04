@@ -2,7 +2,6 @@ from aiohttp import web
 import socketio
 
 
-# sio = socketio.AsyncServer()
 sio = socketio.AsyncServer(cors_allowed_origins=["http://localhost:3000"])
 app = web.Application()
 sio.attach(app)
