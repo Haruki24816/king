@@ -13,10 +13,15 @@
         </v-btn>
       </template>
     </template>
+    <template v-if="king.data.stat == 1">
+      <Deck message="カードを15枚引いてください" :cardIds="king.data.firstShuffle" @clickCard="collect" />
+      <v-btn>残り{{ 15 - count15 }}枚</v-btn>
+    </template>
   </v-container>
 </template>
 
 <script setup>
+import { computed } from "vue"
 import { system } from "../system"
 
 const room = system.stores.room
@@ -34,5 +39,20 @@ function start() {
     king.generateShuffle(),
     king.generateShuffle(),
   )
+}
+
+const count15 = computed(() => {
+  return king.filterCards(null, null, room.getPlayerId(system.myId)).length
+})
+
+function collect(cardId) {
+  if (count15.value < 15) {
+    system.operateStore(
+      "king",
+      "collectCard",
+      room.getPlayerId(system.myId),
+      cardId,
+    )
+  }
 }
 </script>
