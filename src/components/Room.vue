@@ -1,22 +1,18 @@
 <template>
-  <v-container max-width="400">
-    <v-toolbar class="mb-4" density="compact" color="white" elevation=1 rounded>
-      <v-toolbar-title :text="room.data.roomName"></v-toolbar-title>
-      <v-menu location="bottom end">
-        <template v-slot:activator="{ props }">
-          <v-btn icon="mdi-dots-vertical" v-bind="props"></v-btn>
-        </template>
-        <v-list>
-          <v-list-item value="">
-            <v-list-item-title>仮</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </v-toolbar>
-    <King0 v-if="system.stores.king.data.stat == 0" />
-    <King1 v-if="system.stores.king.data.stat == 1" />
-    <King2 v-if="system.stores.king.data.stat == 2" />
-    <King3 v-if="system.stores.king.data.stat == 3" />
+  <v-container class="fill-height d-flex flex-column align-stretch" max-width="400">
+    <RoomMenu />
+    <template v-if="king.data.stat == 0">
+      <Share />
+      <template v-if="1 < room.getUserCount()">
+        <PlayerList />
+        <v-btn class="mb-4" @click="system.operateStore('room', 'updateUserOrder', room.getShuffledUserIds())">
+          順番シャッフル
+        </v-btn>
+        <v-btn @click="start">
+          ゲーム開始
+        </v-btn>
+      </template>
+    </template>
   </v-container>
 </template>
 
@@ -24,4 +20,19 @@
 import { system } from "../system"
 
 const room = system.stores.room
+const king = system.stores.king
+
+function start() {
+  system.operateStore(
+    "room",
+    "setPlayerIdByOrder",
+  )
+  system.operateStore(
+    "king",
+    "start",
+    room.getUserCount(),
+    king.generateShuffle(),
+    king.generateShuffle(),
+  )
+}
 </script>

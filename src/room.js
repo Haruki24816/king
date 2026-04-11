@@ -10,7 +10,6 @@ export const room = {
     "addUser",
     "updateUserSid",
     "leaveUser",
-    "upUserOrder",
     "downUserOrder",
     "updateUserOrder",
     "setPlayerIdByOrder",
@@ -38,17 +37,6 @@ export const room = {
         otherUserData.order -= 1
       }
     }
-  },
-  upUserOrder(userId) {
-    const users = this.data.users
-    const userData = users[userId]
-    const swapUserId = this.getUserIds()[userData.order - 1]
-    if (swapUserId === undefined) {
-      return
-    }
-    const swapUserData = users[swapUserId]
-    userData.order -= 1
-    swapUserData.order += 1
   },
   downUserOrder(userId) {
     const users = this.data.users
