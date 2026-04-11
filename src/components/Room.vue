@@ -19,6 +19,24 @@
         <template v-else>残り{{ 15 - count15 }}枚</template>
       </Deck>
     </template>
+    <template v-if="king.data.stat == 2">
+      <PlayerStat />
+      <Deck v-if="king.data.turn == myPlayerId" :cardIds="king.data.firstShuffle" @clickCard="draw">
+        カードを1枚引いてください
+      </Deck>
+      <Deck v-else :cardIds="king.data.firstShuffle">
+        カードが引かれるのを待ってください
+      </Deck>
+    </template>
+    <template v-if="king.data.stat == 3">
+      <PlayerStat />
+      <Deck v-if="king.data.turn == myPlayerId" :cardIds="king.data.firstShuffle">
+        支払いを待ってください
+      </Deck>
+      <Deck v-else :cardIds="king.data.firstShuffle">
+        支払い
+      </Deck>
+    </template>
   </v-container>
 </template>
 
@@ -28,6 +46,8 @@ import { system } from "../system"
 
 const room = system.stores.room
 const king = system.stores.king
+
+const myPlayerId = computed(() => room.getPlayerId(system.myId))
 
 function start() {
   system.operateStore(
@@ -44,14 +64,22 @@ function start() {
 }
 
 const count15 = computed(() => {
-  return king.filterCards(null, null, room.getPlayerId(system.myId)).length
+  return king.filterCards(null, null, myPlayerId.value).length
 })
 
 function collect(cardId) {
   system.operateStore(
     "king",
     "collectCard",
-    room.getPlayerId(system.myId),
+    myPlayerId.value,
+    cardId,
+  )
+}
+
+function draw(cardId) {
+  system.operateStore(
+    "king",
+    "drawCard",
     cardId,
   )
 }
