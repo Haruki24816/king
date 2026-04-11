@@ -1,8 +1,8 @@
 <template>
-  <v-card class="mb-4 flex-grow-1 d-flex flex-column" height="0">
+  <v-card class="flex-grow-1 d-flex flex-column" height="0">
     <v-card-text>
       <div class="text-center mt-4">
-        {{ props.message }}
+        <slot></slot>
       </div>
     </v-card-text>
     <div class="flex-grow-1 overflow-auto px-4 pb-4 no-scrollbar cards-wrapper">
@@ -18,7 +18,7 @@
 <script setup>
 import { system } from "../system"
 
-const props = defineProps(["message", "cardIds"])
+const props = defineProps(["cardIds"])
 const king = system.stores.king
 
 function isDeckCard(cardId) {

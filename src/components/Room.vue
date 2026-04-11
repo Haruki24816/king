@@ -14,8 +14,10 @@
       </template>
     </template>
     <template v-if="king.data.stat == 1">
-      <Deck message="カードを15枚引いてください" :cardIds="king.data.firstShuffle" @clickCard="collect" />
-      <v-btn>残り{{ 15 - count15 }}枚</v-btn>
+      <Deck :cardIds="king.data.firstShuffle" @clickCard="collect">
+        <template v-if="count15 == 0">カードを15枚引いてください</template>
+        <template v-else>残り{{ 15 - count15 }}枚</template>
+      </Deck>
     </template>
   </v-container>
 </template>
