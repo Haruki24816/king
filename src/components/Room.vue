@@ -46,13 +46,11 @@ const count15 = computed(() => {
 })
 
 function collect(cardId) {
-  if (count15.value < 15) {
-    system.operateStore(
-      "king",
-      "collectCard",
-      room.getPlayerId(system.myId),
-      cardId,
-    )
-  }
+  system.operateStore(
+    "king",
+    "collectCard",
+    room.getPlayerId(system.myId),
+    cardId,
+  )
 }
 </script>

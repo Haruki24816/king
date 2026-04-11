@@ -39,6 +39,9 @@ export const king = {
     this.data.secondShuffle = secondShuffle
   },
   collectCard(playerId, cardId) {
+    if (15 <= this.filterCards(null, null, playerId).length) {
+      return
+    }
     this.data.cards[cardId].location = playerId
     const allCardNum = this.data.cards.length
     const deckCardNum = this.filterCards(null, null, -1).length
