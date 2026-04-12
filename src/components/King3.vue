@@ -3,7 +3,10 @@
   <Message v-if="king.data.turn == myPlayerId">
     支払いを待ってください
   </Message>
-  <Pay v-model="selectedCards" v-else />
+  <template v-else>
+    <Pay v-model="selectedCards" />
+    <v-btn :disabled="validate" @click="pay">支払い</v-btn>
+  </template>
 </template>
 
 <script setup>
@@ -15,4 +18,20 @@ const king = system.stores.king
 
 const myPlayerId = computed(() => room.getPlayerId(system.myId))
 const selectedCards = ref([])
+
+const validate = computed(() => {
+  const turnPlayerData = king.data.players[king.data.turn]
+  return king.countAmount(selectedCards.value) != king.countAmount(turnPlayerData.hand)
+})
+
+function pay() {
+  for (const cardId of selectedCards.value) {
+    system.operateStore(
+      "king",
+      "pay",
+      myPlayerId.value,
+      cardId,
+    )
+  }
+}
 </script>

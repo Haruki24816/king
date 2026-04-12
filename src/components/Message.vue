@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card class="mb-4">
     <v-card-text>
       <div class="text-center my-4">
         <slot></slot>
