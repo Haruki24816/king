@@ -24,18 +24,16 @@
       <Deck v-if="king.data.turn == myPlayerId" :cardIds="king.data.firstShuffle" @clickCard="draw">
         カードを1枚引いてください
       </Deck>
-      <Deck v-else :cardIds="king.data.firstShuffle">
+      <Message v-else>
         カードが引かれるのを待ってください
-      </Deck>
+      </Message>
     </template>
     <template v-if="king.data.stat == 3">
       <PlayerStat />
-      <Deck v-if="king.data.turn == myPlayerId" :cardIds="king.data.firstShuffle">
+      <Message v-if="king.data.turn == myPlayerId">
         支払いを待ってください
-      </Deck>
-      <Deck v-else :cardIds="king.data.firstShuffle">
-        支払い
-      </Deck>
+      </Message>
+      <Pay v-else />
     </template>
   </v-container>
 </template>

@@ -1,15 +1,16 @@
 <template>
-  <template v-if="king.data.turn == room.getPlayerId(system.myId)">
-    <div>待機</div>
-  </template>
-  <template v-else>
-    <div>{{ room.getUserDataByPlayerId(king.data.turn).userName }}が{{ turnAmount }}を引きました</div>
-    <div v-for="cardId in king.filterCards(null, null, room.getPlayerId(system.myId))" class="d-inline-block">
-      <v-checkbox :label="amount(cardId)" :value="cardId" v-model="selected" density="compact"></v-checkbox>
-    </div>
-    <div>{{ king.countAmount(selected) }}</div>
-    <v-btn :disabled="validate" @click="pay">支払う</v-btn>
-  </template>
+  <v-card>
+    <v-card-text>
+      <div class="text-center mt-4">
+        {{ room.getUserDataByPlayerId(king.data.turn).userName }}が{{ turnAmount }}を引きました
+      </div>
+      <div v-for="cardId in king.filterCards(null, null, room.getPlayerId(system.myId))" class="d-inline-block">
+        <v-checkbox :label="amount(cardId)" :value="cardId" v-model="selected" density="compact"></v-checkbox>
+      </div>
+      <div>{{ king.countAmount(selected) }}</div>
+      <v-btn :disabled="validate" @click="pay">支払う</v-btn>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup>
