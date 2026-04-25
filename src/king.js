@@ -1,6 +1,6 @@
 export const king = {
   data: {
-    stat: 0, // 0：初期状態、1：準備段階、2：
+    stat: 0, // 0：初期状態、1：準備段階、2：カードを引く、3：支払い
     turn: 0,
     players: [
       // { 
@@ -17,6 +17,7 @@ export const king = {
     ],
     firstShuffle: [], // シャッフルされたカードIDのリスト（1周目まで使用）
     secondShuffle: [], // シャッフルされたカードIDのリスト（2周目以降使用）
+    lap: 0,
   },
   methods: [
     "start",
@@ -71,6 +72,13 @@ export const king = {
       this.data.turn += 1
       if (this.data.turn == this.data.players.length) {
         this.data.turn = 0
+        this.data.lap += 1
+        if (this.data.lap == 1) {
+          for (const cardId of this.filterCards(null, 4, null)) {
+            const cardData = this.data.cards[cardId]
+            cardData.location = -1
+          }
+        }
       }
       for (const playerData of this.data.players) {
         playerData.hand = []
