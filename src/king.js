@@ -24,6 +24,7 @@ export const king = {
     "collectCard",
     "drawCard",
     "pay",
+    "debt",
   ],
   start(playerNum, firstShuffle, secondShuffle) {
     this.data.stat = 1
@@ -60,6 +61,7 @@ export const king = {
   pay(playerId, cardId) {
     if (cardId == -1) {
       this.data.players[playerId].hand.push(cardId)
+      this.debt(playerId, this.data.turn, 500)
     } else {
       this.data.cards[cardId].location = this.data.turn
       this.data.players[playerId].hand.push(cardId)
@@ -88,6 +90,18 @@ export const king = {
         playerData.hand = []
       }
     }
+  },
+  debt(playerId, opponentId, amount) {
+    const playerData = this.data.players[playerId]
+    const opponentData = this.data.players[opponentId]
+    if (playerData.debts[opponentId] === undefined) {
+      playerData.debts[opponentId] = 0
+    }
+    playerData.debts[opponentId] += amount
+    if (opponentData.debts[playerId] === undefined) {
+      opponentData.debts[playerId] = 0
+    }
+    opponentData.debts[playerId] -= amount
   },
   countAmount(cardIds) {
     const counts = {

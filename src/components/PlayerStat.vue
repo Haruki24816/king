@@ -8,16 +8,12 @@
               {{ room.getUserDataByPlayerId(playerId).userName }}
             </span>
             <template v-slot:append>
-              <v-menu :close-on-content-click="false" location="bottom end">
-                <template v-slot:activator="{ props }">
-                  <v-chip size="x-small" v-bind="props">所持金{{ getAmountLocaleString(playerId) }}円</v-chip>
-                </template>
-                <v-card>
-                  <v-card-text>
-                    仮（内訳を表示）
-                  </v-card-text>
-                </v-card>
-              </v-menu>
+              <PlayerStatChip :value="`所持金${getAmountLocaleString(playerId)}円`">
+                仮
+              </PlayerStatChip>
+              <PlayerStatChip :value="`借金${getDebts(playerId)}円`">
+                仮
+              </PlayerStatChip>
             </template>
           </v-list-item>
           <v-divider v-if="playerId + 1 != king.data.players.length"></v-divider>
@@ -28,12 +24,23 @@
 </template>
 
 <script setup>
+import { computed } from "vue"
 import { system } from "../system"
 
 const room = system.stores.room
 const king = system.stores.king
+const myPlayerId = computed(() => room.getPlayerId(system.myId))
 
 function getAmountLocaleString(playerId) {
   return king.countAmount(king.filterCards(null, null, playerId)).toLocaleString()
+}
+
+function getDebts(opponentId) {
+  const debts = king.data.players[myPlayerId.value].debts
+  if (debts[opponentId] === undefined) {
+    return 0
+  } else {
+    return debts[opponentId].toLocaleString()
+  }
 }
 </script>
