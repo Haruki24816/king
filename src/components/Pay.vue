@@ -6,15 +6,16 @@
       </div>
       <v-table>
         <tbody>
-          <tr v-for="face in 5">
+          <tr v-for="face in [1, 2, 3, 0, 4, 9]">
             <td>
-              {{ faces[face - 1] }}
+              {{ faces[face] }}
             </td>
             <td class="d-flex justify-end align-center">
-              <v-btn density="compact" icon="mdi-minus" :disabled="!canMinus(face - 1)"
-                @click="minus(face - 1)"></v-btn>
-              <div class="mx-1">{{ selectedCardsNum(face - 1) }}/{{ cardsNum(face - 1) }}枚</div>
-              <v-btn density="compact" icon="mdi-plus" :disabled="!canPlus(face - 1)" @click="plus(face - 1)"></v-btn>
+              <v-btn density="compact" icon="mdi-minus" :disabled="!canMinus(face)" @click="minus(face)"></v-btn>
+              <div class="mx-1">
+                {{ selectedCardsNum(face) }}<template v-if="face != 9">/{{ cardsNum(face) }}</template>枚
+              </div>
+              <v-btn density="compact" icon="mdi-plus" :disabled="!canPlus(face)" @click="plus(face)"></v-btn>
             </td>
           </tr>
         </tbody>
@@ -34,10 +35,18 @@ const selectedCards = defineModel()
 const myPlayerId = computed(() => room.getPlayerId(system.myId))
 
 function cardsNum(face) {
+  if (face == 9) {
+    return 1000
+  }
   return king.filterCards(null, face, myPlayerId.value).length
 }
 
 function selectedCardsNum(face) {
+  if (face == 9) {
+    return selectedCards.value.filter((cardId) => {
+      return cardId == -1
+    }).length
+  }
   let count = 0
   const cards = king.filterCards(null, face, myPlayerId.value)
   for (const cardId of selectedCards.value) {
@@ -71,6 +80,8 @@ function canPlus(face) {
           return false
         case 4: // 100円必要 2,000円選択
           return false
+        case 9: // 100円必要 借金500円選択
+          return false
       }
     case 2:
       switch (face) {
@@ -87,6 +98,11 @@ function canPlus(face) {
         case 0: // 500円必要 1,000円選択
           return false
         case 4: // 500円必要 2,000円選択
+          return false
+        case 9: // 500円必要 借金500円選択
+          if (selectedCards.value.length == 0) {
+            return true
+          }
           return false
       }
     case 0:
@@ -107,6 +123,11 @@ function canPlus(face) {
           }
           return false
         case 4: // 1,000円必要 2,000円選択
+          return false
+        case 9: // 1,000円必要 借金500円選択
+          if (selectedAmount <= 500) {
+            return true
+          }
           return false
       }
     case 4:
@@ -131,6 +152,11 @@ function canPlus(face) {
             return true
           }
           return false
+        case 9: // 2,000円必要 借金500円選択
+          if (selectedAmount <= 1500) {
+            return true
+          }
+          return false
       }
   }
 }
@@ -140,6 +166,10 @@ function canMinus(face) {
 }
 
 function plus(face) {
+  if (face == 9) {
+    selectedCards.value.push(-1)
+    return
+  }
   const cards = king.filterCards(null, face, myPlayerId.value)
   const cardsToPlus = cards.filter((cardId) => {
     return !selectedCards.value.includes(cardId)
@@ -154,6 +184,13 @@ function plus(face) {
 }
 
 function minus(face) {
+  if (face == 9) {
+    const deleteIndex = selectedCards.value.indexOf(-1)
+    if (deleteIndex !== -1) {
+      selectedCards.value.splice(deleteIndex, 1)
+    }
+    return
+  }
   const cards = king.filterCards(null, face, myPlayerId.value)
   const cardsToMinus = selectedCards.value.filter((cardId) => {
     return cards.includes(cardId)
@@ -186,5 +223,6 @@ const faces = {
   3: "500円（キング）",
   0: "1,000円",
   4: "2,000円",
+  9: "借金500円",
 }
 </script>

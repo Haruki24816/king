@@ -58,8 +58,12 @@ export const king = {
     this.data.players[this.data.turn].hand.push(cardId)
   },
   pay(playerId, cardId) {
-    this.data.cards[cardId].location = this.data.turn
-    this.data.players[playerId].hand.push(cardId)
+    if (cardId == -1) {
+      this.data.players[playerId].hand.push(cardId)
+    } else {
+      this.data.cards[cardId].location = this.data.turn
+      this.data.players[playerId].hand.push(cardId)
+    }
     const turnPlayerData = this.data.players[this.data.turn]
     let count = 0
     for (const playerData of this.data.players) {
@@ -94,8 +98,12 @@ export const king = {
       4: 0,
     }
     for (const cardId of cardIds) {
-      const cardData = this.data.cards[cardId]
-      counts[cardData.face] += 1
+      if (cardId != -1) {
+        const cardData = this.data.cards[cardId]
+        counts[cardData.face] += 1
+      } else {
+        counts[2] += 1
+      }
     }
     return 1000 * counts[0] + 100 * counts[1] + 500 * counts[2] + 500 * counts[3] + 2000 * counts[4]
   },
