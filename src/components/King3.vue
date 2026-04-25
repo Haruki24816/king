@@ -4,8 +4,13 @@
     支払いを待ってください
   </Message>
   <template v-else>
-    <Pay v-model="selectedCards" />
-    <v-btn :disabled="validate" @click="pay">支払い</v-btn>
+    <template v-if="!ok">
+      <Pay v-model="selectedCards" />
+      <v-btn :disabled="validate" @click="pay">支払い</v-btn>
+    </template>
+    <Message v-else>
+      他プレイヤーの支払い待ち
+    </Message>
   </template>
 </template>
 
@@ -18,6 +23,7 @@ const king = system.stores.king
 
 const myPlayerId = computed(() => room.getPlayerId(system.myId))
 const selectedCards = ref([])
+const ok = ref(false)
 
 const validate = computed(() => {
   const turnPlayerData = king.data.players[king.data.turn]
@@ -33,5 +39,6 @@ function pay() {
       cardId,
     )
   }
+  ok.value = true
 }
 </script>
